@@ -32,7 +32,7 @@ function handleProposal() {
         // 1. Create the robust acceptance link (relative path)
         const acceptanceURL = `ceremony.html?p1=${encodeURIComponent(proposer)}&p2=${encodeURIComponent(partner)}&d=${encodeURIComponent(date)}&t=${encodeURIComponent(vowTheme)}&m=${encodeURIComponent(musicTrack)}`;
 
-        // 2. GENERATE THE FULL, ABSOLUTE URL (FIXED FOR VERCEL/DEPLOYMENT):
+        // 2. GENERATE THE FULL, ABSOLUTE URL (FIXED FOR DEPLOYMENT):
         let baseUrl = window.location.href;
 
         // Logic to clean the current URL down to the base domain/folder path
@@ -152,6 +152,7 @@ function generatePdf(proposerName, partnerName) {
     // Before PDF generation, embed the signature and hide UI elements
     document.getElementById('signature-area').style.display = 'none'; 
     document.getElementById('downloadPdfButton').style.display = 'none';
+    document.getElementById('playMusicButton').style.display = 'none'; // Hide music button
     
     if (signatureDrawn) {
         const signatureImage = new Image();
@@ -176,6 +177,7 @@ function generatePdf(proposerName, partnerName) {
     // Re-show UI elements after PDF generation
     document.getElementById('signature-area').style.display = 'block'; 
     document.getElementById('downloadPdfButton').style.display = 'block';
+    document.getElementById('playMusicButton').style.display = 'block'; 
 }
 
 // --- CEREMONY PAGE LOGIC ---
@@ -209,9 +211,7 @@ function handleCeremony() {
     const selectedVows = VOWS[vowTheme] || VOWS.wifi;
     const vowIndex = Math.floor(Math.random() * selectedVows.length); 
     
-    // ***************************************************************
     // FIX: URL Decoding and Name Population
-    // ***************************************************************
     const decodedPartnerName = decodeURIComponent(partnerName);
     const decodedProposerName = decodeURIComponent(proposerName);
     
@@ -228,10 +228,11 @@ function handleCeremony() {
             document.querySelector('#certificateSection h2').textContent = `Congratulations, ${decodedProposerName} and ${decodedPartnerName}!`;
             document.querySelector('#certificateSection p:nth-child(2)').textContent = `${decodedProposerName} and ${decodedPartnerName} are virtually married!`;
             
+            // Core screen change (MUST WORK)
             document.getElementById('vowSection').style.display = 'none';
             document.getElementById('certificateSection').style.display = 'block';
             
-            playMusic(musicTrack); // FEATURE: Play selected music
+            // !!! REMOVED auto-play media (playMusic, shootConfetti) for security fix !!!
 
             // Populate the certificate details
             document.getElementById('certDate').textContent = new Date(ceremonyDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -247,8 +248,17 @@ function handleCeremony() {
             setTimeout(() => {
                  document.getElementById('certificateSection').style.transition = 'opacity 1s';
                  document.getElementById('certificateSection').style.opacity = 1;
-                 shootConfetti(); // FEATURE: Shoot confetti
             }, 50);
+        });
+    }
+
+    // Feature: Add listener for manual music play (after certificate is shown)
+    const playMusicBtn = document.getElementById('playMusicButton');
+    if (playMusicBtn) {
+        playMusicBtn.addEventListener('click', () => {
+            playMusic(musicTrack);
+            shootConfetti(); 
+            playMusicBtn.style.display = 'none'; // Hide button after click
         });
     }
 }
